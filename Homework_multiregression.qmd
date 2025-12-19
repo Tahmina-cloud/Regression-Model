@@ -1,0 +1,104 @@
+---
+title: "Homework multi regression"
+author: "Tahmina"
+format: docx
+editor: visual
+---
+
+```{r}
+library(tidyverse)
+
+```
+
+```{r}
+tribble(~EngineSize,  ~CurbWeight,  ~Horsepower,  ~MilesperGallon,
+                       2.4,         3289,                          177,               24,
+                          2.4,         3263,                          158,               25,
+                          2.5,         3230,                          170,               24,
+                          3.5,         3580,                          272,               22,
+                          2.8,         3175,                          255,               18,
+                          3.5,         3643,                          263,               22,
+                          3.5,         3497,                          306,               20,
+                          3.0,         3340,                          230,               21,
+                          3.6,         3861,                          263,               19,
+                          2.4,         3287,                          173,               24,
+                          3.3,         3629,                          234,               21,
+                          2.5,         3270,                          170,               22,
+                          3.5,         3292,                          270,               22
+) -> V
+   V
+
+```
+
+1\)
+
+```{r}
+round(cor(V),3)
+```
+
+2\)
+
+Ans: Yes—**EngineSize & Horsepower** are very highly collinear (\~ 0.92)., **EngineSize & Curbweight have high collinearity (**0.76) but **Horsepower & curbweight** has moderate collinearity.( \~0.558)
+
+3)  
+
+Horsepower is mostly correlated with response variable.(most negative, \~ −0.735).
+
+4\)
+
+```{r}
+mcoll <- lm(MilesperGallon ~ EngineSize + CurbWeight+Horsepower, data = V)
+mcoll
+
+```
+
+**full model:** MPG\~35.826758+4.803063(EngineSize)−0.003945(CurbWeight)−0.065831(Horsepower)
+
+5\)
+
+```{r}
+summary(mcoll)
+```
+
+6\)
+
+Ans: Horsepower is significant at the level of .05 which p value is 0.03401
+
+7\)
+
+Ans: R-squared and Adjusted R-squared are both measures used in regression analysis to assess the goodness-of-fit of a model, but they differ in how they account for the number of independent variables. 𝑅2 represents the proportion of the variance in the dependent variable that can be explained by the independent variables in the model where Adjusted R-squared is a modified version of 𝑅2 that adjusts for the number of independent variables in the model and the sample size. It penalizes the inclusion of unnecessary predictors.Adjusted R-squared is more suitable for comparing models with different numbers of predictors, as it accounts for model complexity. 𝑅2 can be misleading in such comparisons.
+
+8\)
+
+the proportion of the variability in Milespergallon is multiple R-squared \~ 0.626 → 62.6% explained.
+
+9\)
+
+Only **Horsepower** is significant:
+
+```{r}
+m_hp <- lm(MilesperGallon ~ Horsepower, data = V)
+summary(m_hp)$r.squared        
+summary(m_hp)$adj.r.squared    
+
+```
+
+10\)
+
+Curbweight has highest p value so without this new model———
+
+```{r}
+new_model<- lm(formula = MilesperGallon ~ EngineSize + Horsepower, data = V)
+summary(new_model)
+```
+
+**new_model:** MPG \~ 26.805+2.147EngineSize−0.0503Horsepower.
+
+11\) Ans:
+
+We don’t reject null hyphothesis for enginesize because its p-value is 0.187, which is bigger than 0.05.That means, after we already account for Horsepower and CurbWeight, Engine Size doesn’t add clear, extra predictive power for MPG.Also, Engine Size and Horsepower are highly correlated (\~0.92), so they carry overlapping information; this multicollinearity makes Engine Size’s estimate noisy (large SE) and therefore not statistically significant.
+
+12\) Ans:
+
+The two-variable model (EngineSize + Horsepower) is better for prediction here.It’s simpler and has almost the same adjusted R² as the three-variable model, so we don’t lose meaningful accuracy.\
+Dropping CurbWeight which wasn’t significant also reduces multicollinearity and makes the model more stable.
