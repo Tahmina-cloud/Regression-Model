@@ -1,0 +1,103 @@
+---
+title: "Forward stepwise regression"
+author: "Tahmina"
+format: html
+editor: visual
+---
+
+```{r}
+library(tidyverse)
+library(janitor)
+```
+
+1\)
+
+```{r}
+dia<-diamonds|>
+  select(price, carat, x, y, z)
+
+as_tibble(dia)
+```
+
+2)  
+
+```{r}
+diamodel1<-lm(price ~ x + y + z, data = dia)
+diamodel1
+
+```
+
+3\)
+
+```{r}
+diamodel2<-lm(price ~ x + carat + z, data = dia)
+diamodel2
+
+```
+
+4\)
+
+```{r}
+summodel1<-summary(diamodel1)
+summodel1
+```
+
+```{r}
+summodel2<-summary(diamodel2)
+summodel2
+
+```
+
+Ans: The second model (using carat, x, and z) is better. It has a higher adjusted R squared and a smaller error compared to the first model. This means it predicts diamond prices more accurately. Carat makes a big difference, so the model that includes carat works much better.
+
+5\)
+
+```{r}
+
+intercept_only <- lm(price ~ 1, data = dia)
+
+all <- lm(price ~ carat + x + y + z, data = dia)
+
+forward_price <- step(intercept_only,
+                      direction = "forward",
+                      scope = formula(all),
+                      trace = 0)
+
+forward_price          
+forward_price$anova
+summary(forward_price)
+
+```
+
+Ans: The stepwise regression picked the model with **carat, x, y, and z**, and all of them are significant. This model fits the data well and gives the best prediction for price.
+
+6\)
+
+```{r}
+
+data1 <- read_csv("~/Desktop/Statistics Regression 613/life expectancy.csv") %>% 
+  janitor::clean_names() %>% 
+  rename(
+    life_expectancy = life_expectancy_world_bank
+  )
+
+data2 <- data1 %>%
+  select(-country_code, -country_name) %>% 
+  drop_na()
+
+intercept_only <- lm(life_expectancy ~ 1, data = data2)
+
+all <- lm(life_expectancy ~ ., data = data2)
+
+forward_life <- step(intercept_only,
+                     direction = "forward",
+                     scope = formula(all),
+                     trace = 0)
+
+forward_life           
+forward_life$anova    
+summary(forward_life)  
+
+```
+
+Ans: For my life expectancy project, the stepwise regression chose a model with region, undernourishment, year, health expenditure, income group, unemployment, and corruption. This model explains about 71% of the variation in life expectancy (adjusted R² ≈ 0.70), so it gives a pretty good fit to the data.
