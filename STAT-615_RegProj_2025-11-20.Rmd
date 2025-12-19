@@ -1,0 +1,214 @@
+---
+title: "STAT-615 Regression Project"
+author: "Soren and Tahmina"
+date: "2025-11-20"
+output: html_document
+---
+
+```{r}
+#| warning: false
+#| message: false
+
+library(tidyverse)
+```
+
+
+### Description of Data
+
+```{r}
+#| message: false
+#| warning: false
+
+df <- read_csv("~/Desktop/Statistics Regression 613/life expectancy.csv") %>% 
+  janitor::clean_names() %>% 
+  rename(
+    life_expectancy = "life_expectancy_world_bank"
+  )
+head(df)
+```
+
+This is life expectancy data from the World Bank. It contains 3306 country-year pairs and 12 variables that are useful in predicting life expectancy. 
+
+### Model One
+
+```{r}
+
+modelone <- lm(life_expectancy ~ 
+                 prevelance_of_undernourishment + 
+                 health_expenditure_percent + 
+                 communicable,
+               data = df)
+summary(modelone)
+
+```
+
+```{r}
+confint(modelone)
+```
+
+```{r}
+head(resid(modelone)) # becuase there are so many, I only will show the first 5
+summary(resid(modelone))
+
+head(fitted(modelone)) # same with this
+summary(fitted(modelone))
+```
+```{r}
+
+df_model1 <- df %>% 
+  select(life_expectancy, 
+         prevelance_of_undernourishment, 
+         health_expenditure_percent, 
+         communicable) %>% 
+  drop_na()
+
+cor(df_model1)
+
+```
+
+There is no evidence of multicoliniearity in the `modelone`.
+
+```{r}
+summary(modelone)
+```
+The Adjusted R^2^ value is 0.5305, meaning about 53% of the variation in life_expectancy can be attributed to the variables in the model. The p-value for all variables is essentially 0, much lower than a = 0.05.
+
+### Model Two
+
+```{r}
+
+modeltwo <- lm(life_expectancy ~ 
+                 prevelance_of_undernourishment + 
+                 health_expenditure_percent + 
+                 communicable +
+                 income_group,
+               data = df)
+summary(modeltwo)
+
+```
+
+```{r}
+
+pred_vals <- data.frame(
+  prevelance_of_undernourishment = 30.5,
+  communicable = 2000000,
+  income_group = "Upper middle income",
+  health_expenditure_percent = 12.08
+)
+
+predict(modeltwo, newdata = pred_vals)
+
+```
+
+With the given data, the life expectancy would be 67.232.
+
+### Model Three
+
+I have no binary variable, so I will recode life_expectancy to be high_life_exp where 1 is the country-year has a high life expectancy and 0 meaning they don't.
+
+```{r}
+df <- df %>% 
+  mutate(
+    high_life_exp = if_else(life_expectancy > 70, 1, 0)
+  )
+```
+
+```{r}
+
+modelthree <- glm(high_life_exp ~ 
+                   prevelance_of_undernourishment + 
+                   health_expenditure_percent + 
+                   communicable +
+                   income_group, 
+                 data = df,
+                 family = "binomial")
+summary(modelthree)
+```
+
+__First Method: Predict Functions__
+
+Same given values as the earlier prediction.
+
+```{r}
+
+predict(modelthree, newdata = pred_vals, type = "response")
+
+```
+
+There is a 44% chance given the given values that the country has a high life expectancy.
+
+__Second method: Brute Force__
+
+$ln(P/(1 - P) = 5.205 - 0.1047(prevelanceOfUndernourishment) + 0.1714(healthExpenditurePercent) -0.00000004(communicable) - 22.14(incomeGroupLow) - 5.338(incomeGroupLowMiddle) - 4.217(incomeGroupUpperMiddle)$
+
+```{r}
+
+5.205 - 0.1047 * 30.5 + 0.1714 * 12.08 - 0.00000004 * 2000000 - 5.338 * 0 - 0.4712 * 0 - 4.217 * 1
+
+```
+
+$ln(P/(1 - P) = -0.214838$
+
+```{r}
+exp(-0.214838)
+```
+
+$P / (1 - P) = 0.8066721$
+
+multiply by (1 - P)
+
+$P = 0.8066721 - 0.8066721P$
+
+add 0.8066721P
+
+$1.8066721P = 0.8066721$
+
+divide by 1.8066721
+
+```{r}
+0.8066721 / 1.8066721
+```
+
+$P = 0.4464961$
+
+Same probability for both methods
+
+```{r}
+summary(modelthree)
+```
+
+The p-values of the predictors are all significant except for the low income group, which has a insignificant p-value and a large standard error. Additionally, the AIC of the model is 1572.9.
+
+### Model Four
+
+```{r}
+
+df_model4 <- df %>% 
+  select(
+    -country_code, -country_name
+  ) %>% 
+  drop_na()
+```
+
+```{r}
+
+lm_int <- lm(life_expectancy ~ 1, data = df_model4)
+lm_all <- lm(life_expectancy ~ ., data = df_model4)
+
+modelfour <- step(lm_int, direction='forward', scope=formula(lm_all), trace=0)
+
+modelfour$anova
+summary(modelfour)
+
+```
+
+The best model for predicting life expectancy is to have predictor variables of region, prevalence of undernourishment, year, health expenditure percent, income group, unemployment, and corruption.
+
+
+### Summary and Observations
+
+
+This project has been an interesting look into `life_expectancy` in different countries. We have figured out what predictors impact `life_expectancy` the greatest, and which ones, sometimes surprisingly, don't impact it a ton. The `region`, `year`, and `prevelance_of_undernourishment` were the most impactful predictors based on the AIC from the stepwise model. Understandably, variables like `co2` were not very useful in predicting `life_expectancy.` However, the `sanitation` predictor we thought would be more significant, but it doesn't have much of an impact on `life_expectancy`.
+
+
+
