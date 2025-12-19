@@ -1,0 +1,83 @@
+---
+title: "homework 5"
+author: "Tahmina"
+format: docx
+editor: visual
+---
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(readxl)
+```
+
+```{r}
+df<- read_csv("~/Desktop/Statistics Regression 613/Homework/MuscelMassData .csv")
+massdata<-df|>
+  rename(age=X,muscle=Y)
+
+```
+
+#2)
+
+```{r}
+ggplot(massdata, aes(x= age, y=muscle)) + geom_point()+
+geom_point(size = 3) +
+  geom_smooth(method = "lm")+
+  labs(title = "age vs. muscle",
+       x = "age increases", y = "muscle")
+
+```
+
+Comment: The points show a clear downward pattern,as age increases, muscle mass tends to decrease. The fitted line looks fairly straight, suggesting a reasonably linear negative relationship with some natural scatter.
+
+#3)
+
+```{r}
+model<-lm(muscle~age,data = massdata)
+summary(model)
+coef(model)["age"]  
+```
+
+**Interpret the slope :**\
+
+here slope is −1.1846. That means each additional year of age is associated with about *1.18 units lower* expected muscle mass (on average).It’s highly significant (p \< 2e−16). A 10-year increase in age corresponds to roughly 11.8 units less muscle mass.95% CI for the yearly change: −1.36 to −1.01 units/year.
+
+4\)
+
+```{r}
+residuals<-resid(model)
+residuals
+```
+
+#5)
+
+```{r}
+qqnorm(residuals)
+qqline(residuals) 
+```
+
+Comment: The points sit close to the line in the middle with only slight bending at the ends, so the residuals look roughly normal. The small tail deviations are usually fine for linear regression.
+
+#6)
+
+```{r}
+plot(residuals(model), pch = 19,
+     xlab = "Observation index", ylab = "Residual",
+     main = "Raw residuals (rough outlier check)")
+abline(h = 0, lty = 2)
+
+
+```
+
+#7)
+
+```{r}
+ggplot(data = model, aes(x = .fitted, y = .resid)) +
+  geom_point(size=3) +
+  geom_hline(yintercept = 0, color = "red") +
+  labs(x = "Fitted values", y = "Residuals", title = "Residuals vs. Fitted") 
+  
+```
+
+Comment:The residuals form a roughly horizontal band around 0 with no clear curve, and the spread is fairly similar across fitted values. This pattern supports the linearity and roughly constant variance assumptions for a simple linear model. A few larger residuals exist, but they don’t show a systematic pattern.
