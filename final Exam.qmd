@@ -1,0 +1,221 @@
+---
+title: "Final exam"
+author: "Tahmina Alam"
+format: html
+editor: visual
+---
+
+```{r}
+library(openintro)
+library(tidyverse)
+library(olsrr)
+```
+
+1a)
+
+```{r}
+?satgpa
+```
+
+description of variables in satgpa dataset:
+
+hs_gpa = High school GPA
+
+fy_gpa = First-year college GPA (this is our response variable)
+
+sat_v =SAT verbal score
+
+sat_m = SAT math score
+
+sex = Gender (1 = female, 2 = male)
+
+1b)
+
+```{r}
+str(satgpa)
+
+
+```
+
+1c)
+
+```{r}
+cor(satgpa)
+
+```
+
+Ans: the correlation table shows that `sat_v` and `sat_m` are each very highly correlated with `sat_sum` (correlations around 0.85), so there is evidence of multicollinearity between those variables. This means we should avoid putting `sat_sum` in the same model with `sat_v` or `sat_m`. The other correlations are more moderate.
+
+1d)
+
+Ans: fy_gpa is the student’s first-year college GPA.
+
+```{r}
+satgpamodel <- lm(fy_gpa ~ sat_m + sat_v + hs_gpa + sex, data = satgpa)
+satgpamodel
+
+```
+
+1e)
+
+```{r}
+summary(satgpamodel)
+
+```
+
+Ans: At the 0.05 significance level, all four predictors in the model are statistically significant (`sat_m`, `sat_v`, `hs_gpa`, and `sex`), because all of their p-values are less than 0.05.
+
+1f)
+
+```{r}
+new_student <- data.frame(
+  sat_v = 65,
+  sat_m = 60,
+  hs_gpa = 3.42,
+  sex = 2
+)
+
+predict(satgpamodel, new_student)
+
+```
+
+Ans: fy_gpa prediction value is 3.008225
+
+1g)
+
+```{r}
+head(resid(satgpamodel))
+```
+
+1h)
+
+```{r}
+length(resid(satgpamodel))
+```
+
+1i)
+
+```{r}
+summary(resid(satgpamodel))
+```
+
+1j)
+
+```{r}
+head(predict(satgpamodel))
+
+```
+
+1k)
+
+```{r}
+length(predict(satgpamodel))
+
+```
+
+1l)
+
+```{r}
+summary(predict(satgpamodel))
+
+```
+
+2\)
+
+Ans:
+
+a\) 85 = 0.68\
+
+b\) 70 = 0.02\
+
+c\) 95 = 0.98\
+
+d\) 75 = 0.07
+
+3\)
+
+```{r}
+as_tibble(mtcars)
+```
+
+3a)
+
+```{r}
+intercept_only <- lm(mpg ~ 1, data=mtcars)
+intercept_only
+
+```
+
+3b)
+
+```{r}
+all <- lm(mpg ~ ., data = mtcars)
+summary(all)
+
+```
+
+3c)
+
+```{r}
+forward <- step(intercept_only, direction = "forward",
+                scope = formula(all), trace = 0)
+forward
+
+```
+
+3d)
+
+```{r}
+forward$anova
+
+```
+
+3e)
+
+```{r}
+summary(forward)
+```
+
+Ans: based on summary ,predictor variables **wt, cyl, and hp** should be included in the model as a consequence of using forward stepwise regression .
+
+3f)
+
+```{r}
+forward$anova
+
+```
+
+Ans: The lowest AIC value in the stepwise regression output is 62.66456, which occurs in the final model that includes the predictors wt, cyl, and hp.
+
+3g)
+
+```{r}
+lm(formula = mpg ~ wt + cyl + hp, data = mtcars)
+
+```
+
+Ans: From the model we get the mpg (intercept)= 38.75179 and the coefficients are
+
+– 3.16697(wt)
+
+– 0.94162(cyl)
+
+– 0.01804(hp)
+
+So the regression model equation is :
+
+mpg = 38.75179 – 3.16697(wt) – 0.94162(cyl) – 0.01804(hp)
+
+4a)
+
+Ans: RMSE tells us, on average, how far the model’s predictions are from the actual values. It’s found by taking the square root of the average squared residuals. A smaller RMSE means the model is doing a better job at predicting the data.
+
+4b)
+
+```{r}
+rmse_model <- sqrt(mean(satgpamodel$residuals^2))
+rmse_model
+
+```
+
+Ans: Using the RMSE formula on my satgpamodel, I obtained an RMSE of 0.5892878. This matches the expected value given in the assignment.
